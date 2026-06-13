@@ -1,96 +1,68 @@
-const service = require("../services/auth.service.js")
-const emailRegexTest = require("../utils/regex.js")
+import {
+  loginUser,
+  requestPasswordReset,
+  registerUser,
+  resetUserPassword,
+  sendVerificationOtp,
+  verifyUserOtp,
+} from "../services/auth.service.js";
+import asyncHandler from "../utils/async-handler.js";
 
+export const register = asyncHandler(async (req, res) => {
+  const user = await registerUser(req.body);
+  res.status(201).json({
+    success: true,
+    message: "Registration successful. Check your email for the verification code.",
+    data: { user },
+  });
+});
 
+export const sendOtp = asyncHandler(async (req, res) => {
+  await sendVerificationOtp(req.body.email);
+  res.status(200).json({
+    success: true,
+    message: "Verification code sent successfully",
+  });
+});
 
+export const verifyOtp = asyncHandler(async (req, res) => {
+  const user = await verifyUserOtp(req.body.email, req.body.otp);
+  res.status(200).json({
+    success: true,
+    message: "Email verified successfully",
+    data: { user },
+  });
+});
 
+export const login = asyncHandler(async (req, res) => {
+  const { user, token } = await loginUser(req.body.email, req.body.password);
+  res.status(200).json({
+    success: true,
+    message: "Login successful",
+    data: { user, token },
+  });
+});
 
-const register = async (req, res) => {
-    const data = req.body || {}
-    const { name, email, password } = data
-    if (!name || !email || !password ||name ===''||password=='') {
-        return res.json({ message: "name, email and password required" })
-    }
+export const forgotPassword = asyncHandler(async (req, res) => {
+  await requestPasswordReset(req.body.email);
+  res.status(200).json({
+    success: true,
+    message: "If an account exists for this email, a password reset code has been sent.",
+  });
+});
 
+export const resetPassword = asyncHandler(async (req, res) => {
+  await resetUserPassword(req.body);
+  res.status(200).json({
+    success: true,
+    message: "Password reset successfully",
+  });
+});
 
-    if(!emailRegexTest(email))
-        return res.json({message: "Invalid Email Format" })
-
-
-    // service.isEmailExist(email);
-    try {
-        const result = await service.registerService(data)
-        if (result.error) {
-            return res.json({ message: result.error })
-        }
-        res.json({ message: "Register successful", data: result.user })
-    } catch (e) {
-        res.json({ message: e.message })
-    }
-}
-
-
-
-
-const login = async (req, res) => {
-    const data = req.body || {}
-    const { email, password } = data
-    if (!email || !password) {
-        return res.json({ message: "email and password required" })
-    }
-    try {
-        const result = await service.loginService(data)
-        if (result.error) {
-            return res.json({ message: result.error })
-        }
-        res.json({ message: "Login successful", token: result.token })
-    } catch (e) {
-        res.json({ message: e.message })
-    }
-}
-
-const sendVerifyOtp = async (req, res) => {
-    const { email } = req.body || {}
-    if (!email) {
-        return res.json({ message: "email required" })
-    }
-    if (!emailRegexTest(email)) {
-        return res.json({ message: "Invalid Email Format" })
-    }
-
-    try {
-        const result = await service.sendVerifyOtp(email)
-        if (result.error) {
-            return res.json({ message: result.error })
-        }
-        res.json({ message: result.message })
-    } catch (e) {
-        res.json({ message: e.message })
-    }
-}
-
-const verifyOtp = async (req, res) => {
-    const { email, otp } = req.body || {}
-    if (!email || !otp) {
-        return res.json({ message: "email and otp required" })
-    }
-    if (!emailRegexTest(email)) {
-        return res.json({ message: "Invalid Email Format" })
-    }
-
-    try {
-        const result = await service.verifyOtp(email, otp)
-        if (result.error) {
-            return res.json({ message: result.error })
-        }
-        res.json({ message: result.message })
-    } catch (e) {
-        res.json({ message: e.message })
-    }
-}
-
-
-
-
-
-module.exports = { register, login, sendVerifyOtp, verifyOtp }
+export const getCurrentUser = asyncHandler(async (req, res) => {
+  res.status(200).json({
+    success: true,
+    message: "Current user retrieved successfully",
+    data: { user: req.user },
+  });
+});

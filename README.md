@@ -1,64 +1,71 @@
-# EventSphere - Event Management Platform
+# EventSphere Backend
 
-EventSphere is a full-stack MERN (MongoDB, Express.js, React, Node.js) event management platform that simplifies event organization, registration, and participation. The platform provides dedicated interfaces for attendees, organizers, and administrators to manage the complete event lifecycle efficiently.
+Production-oriented REST API foundation for EventSphere, built with Node.js, Express,
+MongoDB, Mongoose, JWT, bcrypt, Nodemailer, and Razorpay.
 
-## Features
+## Setup
 
-### Attendee
+1. Install dependencies:
 
-* Browse upcoming events
-* Search and filter events
-* Register for events
-* View registration history
-* Manage personal profile
+   ```bash
+   npm install
+   ```
 
-### Organizer
+2. Copy `.env.example` to `.env` and provide real MongoDB, JWT, SMTP, and Razorpay
+   credentials.
 
-* Create and manage events
-* Track registrations
-* View participant lists
-* Monitor event performance
-* Manage event details
+3. Start development mode:
 
-### Admin
+   ```bash
+   npm run dev
+   ```
 
-* Approve or reject event requests
-* Manage users and organizers
-* Monitor platform activities
-* View analytics and reports
+The API defaults to `http://localhost:5000`. Authentication is exposed at
+`/api/auth` and `/api/v1/auth`.
 
-## Tech Stack
+## Scripts
 
-### Frontend
+- `npm run dev` starts the API with Nodemon.
+- `npm start` starts the API with Node.js.
+- `npm test` runs the foundation test suite.
 
-* React.js
-* Tailwind CSS
-* React Router
-* Axios
+## Authentication API
 
-### Backend
+| Method | Endpoint | Authentication |
+| --- | --- | --- |
+| `POST` | `/api/v1/auth/register` | Public |
+| `POST` | `/api/v1/auth/send-verification-otp` | Public |
+| `POST` | `/api/v1/auth/verify-otp` | Public |
+| `POST` | `/api/v1/auth/login` | Public |
+| `POST` | `/api/v1/auth/forgot-password` | Public |
+| `POST` | `/api/v1/auth/reset-password` | Public |
+| `GET` | `/api/v1/auth/me` | Bearer token |
+| `GET` | `/api/v1/health` | Public |
 
-* Node.js
-* Express.js
-* MongoDB
-* Mongoose
+Public registration accepts the `user` and `organizer` roles. Login is blocked until
+the account email has been verified.
 
-### Authentication & Security
+See [Authentication API](docs/authentication-api.md) for payloads, responses, and
+error codes for the requested `/api/auth` endpoints.
 
-* JWT Authentication
-* Role-Based Access Control (RBAC)
-* Password Hashing with bcrypt
+All responses use the following envelope:
 
-## Key Modules
+```json
+{
+  "success": true,
+  "message": "Request completed",
+  "data": {}
+}
+```
 
-* User Authentication
-* Event Management
-* Event Registration
-* Role Management
-* Payment Integration
-* Dashboard & Analytics
-* Notifications
+## Structure
 
-## Project Objective
-
-To provide a centralized platform where organizers can efficiently manage events, attendees can easily discover and register for events, and administrators can oversee platform operations through a secure and scalable MERN architecture.
+```text
+config/       Environment, database, mail, and Razorpay clients
+controllers/  HTTP request handlers
+middleware/   Authentication, authorization, and errors
+models/       User, OTP, Event, and Booking schemas
+routes/       Versioned Express routers
+services/     Authentication and email business logic
+utils/        Shared errors, JWT, OTP, and async helpers
+```

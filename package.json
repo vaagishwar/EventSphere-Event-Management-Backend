@@ -1,14 +1,15 @@
 {
-  "name": "eventsphere",
+  "name": "eventsphere-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "EventSphere REST API",
   "license": "ISC",
   "author": "",
-  "type": "commonjs",
+  "type": "module",
   "main": "server.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "start": "nodemon server.js"
+    "dev": "nodemon server.js",
+    "start": "node server.js",
+    "test": "node --test"
   },
   "dependencies": {
     "bcrypt": "^6.0.0",
@@ -18,7 +19,7 @@
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.0",
     "nodemailer": "^8.0.11",
-    "react-razorpay": "^3.0.1"
+    "razorpay": "^2.9.6"
   },
   "devDependencies": {
     "nodemon": "^3.1.14"

@@ -1,24 +1,36 @@
+import mongoose from "mongoose";
 
-const mongoose = require('mongoose');
+export const OTP_PURPOSES = ["email_verification", "password_reset"];
 
-const otpSchema = mongoose.Schema({
-    userId:{
-        type:mongoose.Schema.Types.ObjectId,
-        ref:'User',
-        required:true
+const otpSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+      index: true,
     },
-    otp:{
-        type:String,
-        required:true
+    otp: {
+      type: String,
+      required: true,
+      select: false,
     },
-    otpExpiredAt:{
-        type:Date,
-        required:true,
-        expires:0
-    }
-},{
-    timestamps:true
-})
+    purpose: {
+      type: String,
+      enum: OTP_PURPOSES,
+      required: true,
+    },
+    expireAt: {
+      type: Date,
+      required: true,
+    },
+  },
+  { timestamps: true },
+);
 
+otpSchema.index({ expireAt: 1 }, { expireAfterSeconds: 0 });
+otpSchema.index({ userId: 1, purpose: 1 }, { unique: true });
 
-module.exports = mongoose.model('otp',otpSchema);
+const OTP = mongoose.model("OTP", otpSchema);
+
+export default OTP;
