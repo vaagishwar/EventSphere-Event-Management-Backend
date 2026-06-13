@@ -4,13 +4,15 @@ import asyncHandler from "../utils/async-handler.js";
 import { verifyAccessToken } from "../utils/jwt.js";
 
 export const authenticate = asyncHandler(async (req, res, next) => {
-  const authorization = req.get("authorization");
+  let token = req.cookies?.token;
 
-  if (!authorization?.startsWith("Bearer ")) {
-    throw new AppError("Authentication token is required", 401);
+  if (!token) {
+    const authorization = req.get("authorization");
+    if (authorization?.startsWith("Bearer ")) {
+      token = authorization.slice(7).trim();
+    }
   }
 
-  const token = authorization.slice(7).trim();
   if (!token) {
     throw new AppError("Authentication token is required", 401);
   }

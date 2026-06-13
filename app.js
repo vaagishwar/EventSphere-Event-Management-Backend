@@ -1,4 +1,5 @@
 import cors from "cors";
+import cookieParser from "cookie-parser";
 import express from "express";
 
 import env from "./config/env.js";
@@ -14,6 +15,7 @@ import AppError from "./utils/app-error.js";
 const app = express();
 
 app.disable("x-powered-by");
+app.use(cookieParser(env.jwtSecret));
 app.use(
   cors({
     origin(origin, callback) {
