@@ -6,7 +6,9 @@ import { errorHandler, notFoundHandler } from "./middleware/error.middleware.js"
 import authRoutes from "./routes/auth.routes.js";
 import bookingRoutes from "./routes/booking.routes.js";
 import eventRoutes from "./routes/event.routes.js";
+import organizerRoutes from "./routes/organizer.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
+import profileRoutes from "./routes/profile.routes.js";
 import AppError from "./utils/app-error.js";
 
 const app = express();
@@ -37,10 +39,14 @@ app.use("/api/v1/auth", authRoutes);
 app.use("/api/auth", authRoutes);
 app.use("/api/events", eventRoutes);
 app.use("/api/bookings", bookingRoutes);
+app.use("/api/organizer", organizerRoutes);
 app.use("/api/payment", paymentRoutes);
+app.use("/api/profile", profileRoutes);
 app.use("/api/v1/events", eventRoutes);
 app.use("/api/v1/bookings", bookingRoutes);
+app.use("/api/v1/organizer", organizerRoutes);
 app.use("/api/v1/payment", paymentRoutes);
+app.use("/api/v1/profile", profileRoutes);
 app.use(notFoundHandler);
 app.use(errorHandler);
 

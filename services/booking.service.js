@@ -25,6 +25,16 @@ export const createBooking = async ({ userId, eventId, quantity }) => {
     throw new AppError("Not enough seats are available", 409);
   }
 
+  const existingBooking = await Booking.findOne({
+    userId,
+    eventId,
+    bookingStatus: { $ne: "cancelled" },
+  });
+
+  if (existingBooking) {
+    throw new AppError("You already have a booking for this event", 409);
+  }
+
   return Booking.create({
     userId,
     eventId: event.id,

@@ -13,6 +13,7 @@ let confirmPayment;
 let createBooking;
 let createEvent;
 let createPaymentOrder;
+let getOrganizerEventAnalytics;
 let updateOrganizerEvent;
 
 before(async () => {
@@ -20,6 +21,7 @@ before(async () => {
   ({ default: Event } = await import("../models/event.model.js"));
   ({ createBooking } = await import("../services/booking.service.js"));
   ({ createEvent, updateOrganizerEvent } = await import("../services/event.service.js"));
+  ({ getOrganizerEventAnalytics } = await import("../services/organizer.service.js"));
   ({ confirmPayment, createPaymentOrder } = await import("../services/payment.service.js"));
 });
 
@@ -274,5 +276,78 @@ test("payment success rejects an invalid Razorpay signature before changing seat
   } finally {
     Booking.findOne = originalBookingFindOne;
     Booking.findOneAndUpdate = originalBookingFindOneAndUpdate;
+  }
+});
+
+test("organizer analytics summarizes bookings, revenue, attendees, and fill rate", async () => {
+  const originalEventFindOne = Event.findOne;
+  const originalBookingCountDocuments = Booking.countDocuments;
+  const originalBookingAggregate = Booking.aggregate;
+  const originalBookingFind = Booking.find;
+
+  const eventId = "507f1f77bcf86cd799439012";
+  const organizerId = "507f1f77bcf86cd799439011";
+  const event = {
+    _id: eventId,
+    organizerId,
+    totalSeats: 100,
+    availableSeats: 64,
+  };
+  const recentBookings = [
+    {
+      _id: "507f1f77bcf86cd799439014",
+      quantity: 2,
+      amount: 998,
+      paymentStatus: "paid",
+      bookingStatus: "confirmed",
+      userId: { name: "Asha", email: "asha@example.com" },
+    },
+  ];
+
+  try {
+    Event.findOne = async (filter) => {
+      assert.equal(String(filter._id), eventId);
+      assert.equal(filter.organizerId, organizerId);
+      return event;
+    };
+    Booking.countDocuments = async (filter) => {
+      if (filter.bookingStatus === "confirmed") return 7;
+      return 11;
+    };
+    Booking.aggregate = async (pipeline) => {
+      const hasRevenueGroup = pipeline.some((stage) => stage.$group?.totalRevenue);
+      if (hasRevenueGroup) return [{ totalRevenue: 4096 }];
+      return [{ date: "2026-06-13", bookings: 3, revenue: 1497 }];
+    };
+    Booking.find = () => ({
+      populate() {
+        return this;
+      },
+      sort() {
+        return this;
+      },
+      skip(value) {
+        assert.equal(value, 0);
+        return this;
+      },
+      limit(value) {
+        assert.equal(value, 10);
+        return recentBookings;
+      },
+    });
+
+    const analytics = await getOrganizerEventAnalytics({ eventId, organizerId });
+
+    assert.equal(analytics.totalBookings, 11);
+    assert.equal(analytics.confirmedBookings, 7);
+    assert.equal(analytics.revenue, 4096);
+    assert.equal(analytics.fillRate, 36);
+    assert.equal(analytics.recentBookings, recentBookings);
+    assert.equal(analytics.trend[0].bookings, 3);
+  } finally {
+    Event.findOne = originalEventFindOne;
+    Booking.countDocuments = originalBookingCountDocuments;
+    Booking.aggregate = originalBookingAggregate;
+    Booking.find = originalBookingFind;
   }
 });
