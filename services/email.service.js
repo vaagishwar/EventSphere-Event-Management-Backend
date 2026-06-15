@@ -3,8 +3,9 @@ import { getMailer } from "../config/mailer.js";
 
 export const sendVerificationEmail = async ({ name, email, otp, expiresInMinutes }) => {
   const smtp = getSmtpConfig();
+  const transporter = await getMailer();
 
-  await getMailer().sendMail({
+  await transporter.sendMail({
     from: smtp.from,
     to: email,
     subject: "Verify your EventSphere email",
@@ -15,8 +16,9 @@ export const sendVerificationEmail = async ({ name, email, otp, expiresInMinutes
 
 export const sendPasswordResetEmail = async ({ name, email, otp, expiresInMinutes }) => {
   const smtp = getSmtpConfig();
+  const transporter = await getMailer();
 
-  await getMailer().sendMail({
+  await transporter.sendMail({
     from: smtp.from,
     to: email,
     subject: "Reset your EventSphere password",
@@ -27,13 +29,14 @@ export const sendPasswordResetEmail = async ({ name, email, otp, expiresInMinute
 
 export const sendBookingConfirmationEmail = async ({ name, email, booking }) => {
   const smtp = getSmtpConfig();
+  const transporter = await getMailer();
   const event = booking.eventId;
   const eventDate = new Date(event.eventDate).toLocaleString("en-IN", {
     dateStyle: "medium",
     timeStyle: "short",
   });
 
-  await getMailer().sendMail({
+  await transporter.sendMail({
     from: smtp.from,
     to: email,
     subject: `Booking confirmed: ${event.title}`,

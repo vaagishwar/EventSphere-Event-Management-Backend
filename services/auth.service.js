@@ -23,12 +23,17 @@ const createOtp = async ({ user, purpose, sendEmail }) => {
     { otp: hashedOtp, expireAt },
     { upsert: true, runValidators: true, setDefaultsOnInsert: true },
   );
-  await sendEmail({
-    name: user.name,
-    email: user.email,
-    otp,
-    expiresInMinutes: env.otpExpiresInMinutes,
-  });
+  try {
+    await sendEmail({
+      name: user.name,
+      email: user.email,
+      otp,
+      expiresInMinutes: env.otpExpiresInMinutes,
+    });
+  } catch (emailError) {
+    console.error("Email sending failed:", emailError.message);
+    // Don't throw - allow registration to proceed even if email fails
+  }
 };
 
 const findAndValidateOtp = async ({ userId, otp, purpose }) => {
